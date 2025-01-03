@@ -18,7 +18,7 @@ index 0aa01d192d8bfe91f4a4d6d6560e31921c7377e4..4ce74a780a47135921f1cbbf7086cc0f
      // This CSSSampleId represents page load for CSS histograms. It is recorded once
      // per page visit for each CSS histogram being logged on the blink side and the
 diff --git a/third_party/blink/renderer/core/css/css_properties.json5 b/third_party/blink/renderer/core/css/css_properties.json5
-index a28a04a85f7aef24e5a6c6438e2d12023e429385..f59d05718ad539c82416b639eda37b7225ae2d15 100644
+index a28a04a85f7aef24e5a6c6438e2d12023e429385..2682380c81d6343c70899b77371431d411e612ab 100644
 --- a/third_party/blink/renderer/core/css/css_properties.json5
 +++ b/third_party/blink/renderer/core/css/css_properties.json5
 @@ -8787,6 +8787,20 @@
@@ -28,7 +28,7 @@ index a28a04a85f7aef24e5a6c6438e2d12023e429385..f59d05718ad539c82416b639eda37b72
 +
 +    {
 +      name: "-electron-corner-smoothing",
-+      // TODO: property_methods: ["ParseSingleValue"],
++      property_methods: ["ParseSingleValue"],
 +      converter: "ConvertNumberOrPercentage",
 +      field_group: "*",
 +      // TODO: only percentage
@@ -55,3 +55,21 @@ index abdf3baaa5bb5cef6923c4817dc34dd01b2cbf6f..6743bfe4ce5ed4364ac4c3bd4bc3616c
      case CSSPropertyID::kEmptyCells:
        return a.EmptyCells() == b.EmptyCells();
      case CSSPropertyID::kFill:
+diff --git a/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc b/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc
+index 1eeb75ba07d767abac6a76106bbdf3b6429c0322..1ff404c9458e73be0dd653fc87b8b99495181b4b 100644
+--- a/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc
++++ b/third_party/blink/renderer/core/css/properties/longhands/longhands_custom.cc
+@@ -11470,5 +11470,13 @@ const CSSValue* InternalEmptyLineHeight::ParseSingleValue(
+                                          CSSValueID::kNone>(stream);
+ }
+ 
++const CSSValue* ElectronCornerSmoothing::ParseSingleValue(
++    CSSParserTokenStream& stream,
++    const CSSParserContext& context,
++    const CSSParserLocalContext&) const {
++  return css_parsing_utils::ConsumePercent(
++      stream, context, CSSPrimitiveValue::ValueRange::kNonNegative);
++}
++
+ }  // namespace css_longhand
+ }  // namespace blink
