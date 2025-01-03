@@ -137,3 +137,4 @@ refactor_unfilter_unresponsive_events.patch
 build_disable_thin_lto_mac.patch
 support_bstr_pkey_appusermodel_id_in_windows_shortcuts.patch
 corner_smoothing_-electron-corner-smoothing_css_rule.patch
+corner_smoothing_painting_smooth_corners.patch
