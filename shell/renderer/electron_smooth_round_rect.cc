@@ -2,7 +2,7 @@
 // Use of this source code is governed by the MIT license that can be
 // found in the LICENSE file.
 
-#include "shell/renderer/electron_smooth_round_rect.h"
+#include "electron/shell/renderer/electron_smooth_round_rect.h"
 
 #include <numbers>
 #include "base/check_op.h"
@@ -11,18 +11,16 @@ namespace electron {
 
 namespace {
 
-constexpr float PI_DIV_4 = std::numbers::pi / 4.0f;
-constexpr float EDGE_CURVE_POINT_RATIO = 2.0f / 3.0f;
-
-// Applies quarter rotations (90° clockwise) to a point.
-constexpr SkPoint QuarterRotate(const SkPoint& p, int quarter_rotations) {
+// Applies quarter rotations (n * 90°) to a point relative to the origin.
+constexpr SkPoint QuarterRotate(const SkPoint& p,
+                                unsigned int quarter_rotations) {
   // 0 = +X +Y
-  // 1 = +Y -X
+  // 1 = -Y +X
   // 2 = -X -Y
-  // 3 = -Y +X
+  // 3 = +Y -X
 
-  float sign_x = quarter_rotations % 4 < 2 ? 1.0f : -1.0f;
-  float sign_y = (quarter_rotations + 1) % 4 < 2 ? 1.0f : -1.0f;
+  float sign_x = (quarter_rotations + 1) % 4 < 2 ? 1.0f : -1.0f;
+  float sign_y = quarter_rotations % 4 < 2 ? 1.0f : -1.0f;
 
   bool is_even_rotation = quarter_rotations % 2 == 0;
 
@@ -70,19 +68,17 @@ struct CurveGeometry {
 };
 
 CurveGeometry::CurveGeometry(float radius, float smoothness) {
-  DCHECK_GT(radius, 0.0f);
-  DCHECK_GT(smoothness, 0.0f);
-  DCHECK_LE(smoothness, 1.0f);
-
   edge_connecting_offset = (1.0f + smoothness) * radius;
 
-  float arc_angle = PI_DIV_4 * smoothness;
+  float arc_angle = (std::numbers::pi / 4.0f) * smoothness;
 
   arc_connecting_vector =
-      SkVector::Make(1.0f - std::sin(arc_angle), 1.0f - std::cos(arc_angle));
+      SkVector::Make(1.0f - std::sin(arc_angle), 1.0f - std::cos(arc_angle)) *
+      radius;
 
-  arc_curve_offset = 1.0f - std::tan(arc_angle / 2.0f);
+  arc_curve_offset = (1.0f - std::tan(arc_angle / 2.0f)) * radius;
 
+  constexpr float EDGE_CURVE_POINT_RATIO = 2.0f / 3.0f;
   edge_curve_offset =
       edge_connecting_offset -
       ((edge_connecting_offset - arc_curve_offset) * EDGE_CURVE_POINT_RATIO);
@@ -92,10 +88,7 @@ void DrawCorner(SkPath& path,
                 float radius,
                 const CurveGeometry& curve,
                 const SkPoint& corner,
-                int quarter_rotations) {
-  DCHECK_GE(quarter_rotations, 0);
-  DCHECK_LT(quarter_rotations, 4);
-
+                unsigned int quarter_rotations) {
   // Move/Line to the edge connecting point
   {
     SkPoint edge_connecting_point =
